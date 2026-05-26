@@ -2,13 +2,25 @@ import { Request, Response } from 'express'
 import Product from '../models/Product.model'
 
 export const getProducts = async (req: Request, res: Response) => {
-        const products = await Product.findAll({
-            order: [
-                ['id', 'DESC']
-            ]
-            // attributes: {exclude: ['createdAt', 'updatedAt', 'availability']} // para solo traer el id, nombre y precio
+const page = parseInt(req.query.page as string) || 1
+        const limit = parseInt(req.query.limit as string) || 5
+        const offset = (page - 1) * limit
+
+        const { count, rows } = await Product.findAndCountAll({
+            order: [['id', 'DESC']],
+            limit,
+            offset
         })
-        res.json({data: products})
+
+        res.json({
+            data: rows,
+            pagination: {
+                total: count,
+                page,
+                limit,
+                totalPages: Math.ceil(count / limit)
+            }
+        })
 }
 
 export const getProductById = async (req: Request, res: Response) => {

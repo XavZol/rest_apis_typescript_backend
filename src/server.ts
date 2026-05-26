@@ -10,12 +10,13 @@ import db from './config/db'
 // Conectar a base de datos
 export async function connectDB() {
     try {
+        console.log('NODE_TLS_REJECT_UNAUTHORIZED =', process.env.NODE_TLS_REJECT_UNAUTHORIZED)
         await db.authenticate()
         db.sync()
         console.log( colors.blue( 'Conexión exitosa a la BD'))
     } catch (error) {
-        // console.log(error)
         console.log( colors.red.bold( 'Hubo un error al conectar a la BD') )
+        console.error(error)
     }
 }
 connectDB()
@@ -26,7 +27,8 @@ const server = express()
 // Permitir Conexiones
 const corsOptions : CorsOptions = {
     origin: function(origin, callback) {
-        if(origin === process.env.FRONTEND_URL) {
+        // Permitimos !origin para evitar bloqueos innecesarios en ciertas peticiones
+        if(!origin || origin === process.env.FRONTEND_URL) {
             callback(null, true)
         } else {
             callback(new Error('Error de CORS'))
